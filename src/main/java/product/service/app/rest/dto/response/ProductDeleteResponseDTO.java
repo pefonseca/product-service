@@ -13,6 +13,6 @@ import lombok.Setter;
 @AllArgsConstructor
 public class ProductDeleteResponseDTO {
 
-    private String message;
+    private String status = "Produto não encontrao!";
 
 }

@@ -27,7 +27,7 @@ public class ProductServiceImpl implements ProductService {
      */
     @Override
     public ProductResponseDTO save(ProductRequestDTO request) {
-        var productSaved = repository.save(buildToProduct(request));
+        Product productSaved = repository.save(buildToProduct(request));
         return productSaved.responseDTO();
     }
 
@@ -37,7 +37,11 @@ public class ProductServiceImpl implements ProductService {
      */
     @Override
     public ProductResponseDTO update(ProductRequestDTO request, Long id) {
-        return null;
+        Product productDB = repository.findById(id).orElseThrow(() -> new RuntimeException("Product Not Found"));
+
+        //TODO fazer lógica de atualização de produto.
+
+        return productDB.responseDTO();
     }
 
     /**
@@ -46,7 +50,14 @@ public class ProductServiceImpl implements ProductService {
      */
     @Override
     public ProductDeleteResponseDTO delete(Long id) {
-        return null;
+        ProductDeleteResponseDTO productDeleteResponseDTO = new ProductDeleteResponseDTO();
+
+        if(repository.findById(id).isPresent()) {
+            repository.deleteById(id);
+            productDeleteResponseDTO.setStatus("Produto Deletado");
+        }
+
+        return productDeleteResponseDTO;
     }
 
     /**
@@ -55,7 +66,9 @@ public class ProductServiceImpl implements ProductService {
      */
     @Override
     public ProductResponseDTO findById(Long id) {
-        return null;
+        Product productDB = repository.findById(id).orElseThrow(() -> new RuntimeException("Product Not Found"));
+
+        return productDB.responseDTO();
     }
 
     /**
