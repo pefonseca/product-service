@@ -8,6 +8,7 @@ import product.service.app.rest.dto.response.ProductResponseDTO;
 import product.service.domain.model.entity.Category;
 import product.service.domain.model.entity.Product;
 import product.service.domain.service.ProductService;
+import product.service.infra.messaging.publisher.InventoryPublisher;
 import product.service.infra.repository.CategoryRepository;
 import product.service.infra.repository.ProductRepository;
 
@@ -20,6 +21,7 @@ public class ProductServiceImpl implements ProductService {
 
     private final ProductRepository repository;
     private final CategoryRepository categoryRepository;
+    private final InventoryPublisher inventoryPublisher;
 
     /**
      * @param request
@@ -28,20 +30,44 @@ public class ProductServiceImpl implements ProductService {
     @Override
     public ProductResponseDTO save(ProductRequestDTO request) {
         Product productSaved = repository.save(buildToProduct(request));
+
+        inventoryPublisher.publishProductInventory(productSaved, request.getStockQuantity());
+
         return productSaved.responseDTO();
     }
 
     /**
-     * @param request
+     * @param productRequestDTO
      * @return
      */
     @Override
-    public ProductResponseDTO update(ProductRequestDTO request, Long id) {
+    public ProductResponseDTO update(ProductRequestDTO productRequestDTO, Long id) {
         Product productDB = repository.findById(id).orElseThrow(() -> new RuntimeException("Product Not Found"));
 
-        //TODO fazer lógica de atualização de produto.
+        buildProductToUpdate(productDB, productRequestDTO, id);
 
-        return productDB.responseDTO();
+        var savedProduct = repository.save(productDB);
+
+        inventoryPublisher.publishProductInventory(savedProduct, productRequestDTO.getStockQuantity());
+
+        return savedProduct.responseDTO();
+    }
+
+    private void buildProductToUpdate(Product productDB, ProductRequestDTO productRequestDTO, Long id) {
+
+        Category category = categoryRepository.findById(productRequestDTO.getCategoryId()).orElseThrow(() -> new RuntimeException("Category not found."));
+
+        productDB.setId(id);
+        productDB.setName(productRequestDTO.getName());
+        productDB.setDescription(productRequestDTO.getDescription());
+        productDB.setPrice(productRequestDTO.getPrice());
+        productDB.setCategory(category);
+        productDB.setImagesUrl(productRequestDTO.getImagesUrl());
+        productDB.setCreateAt(productDB.getCreateAt());
+        productDB.setUpdatedAt(LocalDateTime.now());
+        productDB.setAverageRating(productRequestDTO.getAverageRating());
+        productDB.setIsActive(productRequestDTO.getIsActive());
+
     }
 
     /**
@@ -82,7 +108,6 @@ public class ProductServiceImpl implements ProductService {
                                                                               .description(product.getDescription())
                                                                               .price(product.getPrice())
                                                                               .category(product.getCategory().responseDTO())
-                                                                              .stockQuantity(product.getStockQuantity())
                                                                               .imagesUrl(product.getImagesUrl())
                                                                               .createAt(product.getCreateAt())
                                                                               .updatedAt(product.getUpdatedAt())
@@ -99,7 +124,6 @@ public class ProductServiceImpl implements ProductService {
                       .description(requestDTO.getDescription())
                       .price(requestDTO.getPrice())
                       .category(category)
-                      .stockQuantity(requestDTO.getStockQuantity())
                       .imagesUrl(requestDTO.getImagesUrl())
                       .averageRating(requestDTO.getAverageRating())
                       .isActive(requestDTO.getIsActive())

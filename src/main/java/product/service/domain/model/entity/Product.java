@@ -34,7 +34,6 @@ public class Product {
     @ManyToOne
     @JoinColumn(name = "category_id", nullable = false)
     private Category category;
-    private Integer stockQuantity;
     private String imagesUrl;
     private LocalDateTime createAt;
     private LocalDateTime updatedAt;
@@ -48,7 +47,6 @@ public class Product {
                                  .description(this.description)
                                  .price(this.price)
                                  .category(this.category.responseDTO())
-                                 .stockQuantity(this.stockQuantity)
                                  .imagesUrl(this.imagesUrl)
                                  .createAt(this.createAt)
                                  .updatedAt(this.updatedAt)

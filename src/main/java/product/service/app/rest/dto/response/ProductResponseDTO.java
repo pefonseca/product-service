@@ -5,7 +5,6 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import product.service.domain.model.entity.Category;
 
 import java.time.LocalDateTime;
 
@@ -21,7 +20,6 @@ public class ProductResponseDTO {
     private String description;
     private Double price;
     private CategoryResponseDTO category;
-    private Integer stockQuantity;
     private String imagesUrl;
     private LocalDateTime createAt;
     private LocalDateTime updatedAt;
